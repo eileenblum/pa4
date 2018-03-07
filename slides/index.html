@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>PA4</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Eileen Blum" />
+    <link rel="stylesheet" href="http://www.jvcasillas.com/ru_xaringan/css/rutgers.css" type="text/css" />
+    <link rel="stylesheet" href="http://www.jvcasillas.com/ru_xaringan/css/rutgers-fonts.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# PA4
+## Data Science for Linguistics
+### Eileen Blum
+### Rutgers University </br> 2018-03-06
+
+---
+
+
+
+
+
+
+# Raw Data
+
+##Load the data set
+
+
+```r
+my_fric_data &lt;- read_csv("../data_raw//fricatives/fricatives.csv")
+head(my_fric_data)
+```
+
+```
+## # A tibble: 6 x 5
+##     obs s_cog s_skewness sh_cog sh_skewness
+##   &lt;int&gt; &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt;       &lt;dbl&gt;
+## 1     1 3285.     -1.22   2409.     -0.248 
+## 2     2 4664.     -1.19   2823.     -0.0165
+## 3     3 4680.     -1.07   2898.      0.118 
+## 4     4 4874.     -1.06   3617.      0.198 
+## 5     5 4879.     -1.03   3668.      0.212 
+## 6     6 5195.     -0.949  3685.      0.262
+```
+---
+
+# Descriptive Statistics
+
+
+```r
+select(my_fric_data, -obs) %&gt;%
+  summary() %&gt;% 
+  knitr::kable(., digits = 2)
+```
+
+         s_cog        s_skewness          sh_cog      sh_skewness    
+---  -------------  ----------------  -------------  ----------------
+     Min.   :3285   Min.   :-1.2153   Min.   :2409   Min.   :-0.2481 
+     1st Qu.:5116   1st Qu.:-0.9699   1st Qu.:3680   1st Qu.: 0.2498 
+     Median :5860   Median :-0.7800   Median :3956   Median : 0.5315 
+     Mean   :5691   Mean   :-0.7714   Mean   :3995   Mean   : 0.5527 
+     3rd Qu.:6259   3rd Qu.:-0.6095   3rd Qu.:4525   3rd Qu.: 0.7239 
+     Max.   :7095   Max.   :-0.1269   Max.   :5087   Max.   : 1.5187 
+
+---
+
+# Tidy Data
+
+.pull-left[
+
+```r
+my_fric_long_cog &lt;- my_fric_data %&gt;%
+  select(., alveolar = s_cog, postAlveolar = sh_cog) %&gt;%
+  gather(., key = phoneme, value = centerOfGravity)
+head(my_fric_long_cog)
+```
+
+```
+## # A tibble: 6 x 2
+##   phoneme  centerOfGravity
+##   &lt;chr&gt;              &lt;dbl&gt;
+## 1 alveolar           3285.
+## 2 alveolar           4664.
+## 3 alveolar           4680.
+## 4 alveolar           4874.
+## 5 alveolar           4879.
+## 6 alveolar           5195.
+```
+]
+
+.pull-right[
+
+```r
+my_fric_long_skew &lt;- my_fric_data %&gt;%
+  select(., alveolar = s_skewness, postAlveolar = sh_skewness) %&gt;%
+  gather(., key = phoneme, value = skewness)
+head(my_fric_long_skew)
+```
+
+```
+## # A tibble: 6 x 2
+##   phoneme  skewness
+##   &lt;chr&gt;       &lt;dbl&gt;
+## 1 alveolar   -1.22 
+## 2 alveolar   -1.19 
+## 3 alveolar   -1.07 
+## 4 alveolar   -1.06 
+## 5 alveolar   -1.03 
+## 6 alveolar   -0.949
+```
+]
+
+---
+
+# Center of Gravity
+
+.pull-left[
+&lt;img src="index_files/figure-html/cog_boxplot-1.png" width="504" /&gt;
+]
+
+.pull-right[
+- This figure shows an effect of sibilant anteriority on center of gravity.
+
+- The [+anterior] sibilant appears to have a higher center of gravity than the [-anterior] sibilant.
+]
+---
+
+# Skewness
+.pull-left[
+&lt;img src="index_files/figure-html/skew_plot-1.png" width="504" /&gt;
+]
+
+.pull-right[
+- This plot shows an effect of sibilant anteriority on normalized skewness. 
+
+- The [-anterior] sibilant appears to have a more positive skew and the [+anterior] sibilant appears to have a more negative skew.
+]
+
+---
+
+# Fit a Model
+
+```r
+fric_cog_skew &lt;- my_fric_data %&gt;% 
+  select(., s_cog, s_skewness)
+fric_cog_skew_mod &lt;- lm(s_cog ~ s_skewness, data = fric_cog_skew)
+summary(fric_cog_skew_mod)
+```
+
+```
+## 
+## Call:
+## lm(formula = s_cog ~ s_skewness, data = fric_cog_skew)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1060.74   -21.72    58.96   123.00   405.24 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   8027.2      212.3   37.80  &lt; 2e-16 ***
+## s_skewness    3029.1      259.1   11.69 7.69e-10 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 320.1 on 18 degrees of freedom
+## Multiple R-squared:  0.8836,	Adjusted R-squared:  0.8771 
+## F-statistic: 136.6 on 1 and 18 DF,  p-value: 7.691e-10
+```
+
+---
+
+# Model Summaries
+
+.pull-left[
+
+```r
+    my_fric_long_cog %&gt;% 
+      group_by(., phoneme) %&gt;% 
+      summarize(., mean_centerOfGravity = mean(centerOfGravity)) %&gt;% 
+      knitr::kable(., format = 'html', digits = 2)
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; phoneme &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; mean_centerOfGravity &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; alveolar &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5690.52 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; postAlveolar &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3994.82 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+.pull-right[
+
+```r
+    my_fric_long_skew %&gt;% 
+      group_by(., phoneme) %&gt;% 
+      summarize(., mean_skewness = mean(skewness)) %&gt;% 
+      knitr::kable(., format = 'html', digits = 2)
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; phoneme &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; mean_skewness &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; alveolar &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.77 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; postAlveolar &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.55 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+### The mean of the residuals is
+
+```
+## [1] 1.136591e-14
+```
+
+
+---
+
+# Model Diagnostics
+
+.pull-left[
+![](index_files/figure-html/resid_autocorr-1.png)&lt;!-- --&gt;
+]
+
+.pull-right[
+![](index_files/figure-html/resid_norm-1.png)&lt;!-- --&gt;
+]
+
+---
+
+# Plot
+
+.pull-left[
+&lt;img src="index_files/figure-html/fric_plot1-1.png" width="504" /&gt;
+]
+
+.pull-right[
+- This scatter plot shows that for the [+anterior] sibilants, skewness increases as center of gravity increases. 
+]
+
+---
+
+# Results
+
+  The production data were analyzed using generalized linear mixed models to test the effect of the anteriority of sibilants on the acoustic measures (skewness and center of gravity). Skewness was shown to be a significant predictor of center of gravity for [+anterior] sibilants (F(1) = 136.6 and p &lt; 0.01). Visual inspection of plots of residuals against fitted values revealed no discernible deviations from normality and homoskedasticity.
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="http://www.jvcasillas.com/ru_xaringan/js/ru_xaringan.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function() {
+  var d = document, s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})();</script>
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+  }
+});
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1520366495657.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3636276608",
+    "id" : "C467EF89",
+    "lastKnownWriteTime" : 1520374660,
+    "last_content_update" : 1520374660237,
+    "path" : "~/Documents/Data Science in Ling/datasci_assignments/misc/students/blum_eileen/pa4/pa4.R",
+    "project_path" : "pa4.R",
+    "properties" : {
+        "cursorPosition" : "49,0",
+        "scrollLine" : "37",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
